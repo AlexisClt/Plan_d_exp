@@ -1,0 +1,2 @@
+[tool.pytest.ini_options]
+addopts = "--cov-report html --cov=src --cov=tests src/ tests/"
