@@ -22,3 +22,10 @@ class Equations:
             raise ValueError(f"{order} : Wrong value for order")
         if order == 0:
             logger.warning("order is 0")
+        if order > len(indexes):
+            raise ValueError(
+                f"""order : {order}
+index : {indexes}
+length of indexes : {len(indexes)}
+order should be less or equal to length of indexes"""
+            )

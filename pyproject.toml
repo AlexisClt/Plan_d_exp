@@ -1,2 +1,6 @@
 [tool.pytest.ini_options]
-addopts = "--cov-report html --cov=src --cov=tests src/ tests/"
+addopts = "--cov-report html --cov=Plan_d_exp Plan_d_exp/src/ Plan_d_exp/tests/"
+
+[[tool.mypy.overrides]]
+module = ['Plan_d_exp']
+strict = true
