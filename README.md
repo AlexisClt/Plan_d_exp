@@ -1,5 +1,7 @@
 # Plan_d_exp
 
+### Installation
+
 Create venv
 ```
 python3 -m venv env
@@ -14,6 +16,8 @@ Install requirements
 ```
 pip install -r requirements.txt
 ```
+
+### Development
 
 Launch unit tests using pytest
 ```
