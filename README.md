@@ -19,3 +19,13 @@ Launch unit tests using pytest
 ```
 % python3 -m pytest tests src
 ```
+
+Improving the readability by sorting the imports
+```
+% isort Plan_d_exp
+```
+
+mypy for checking type hinting
+```
+% mypy Plan_d_exp
+```
