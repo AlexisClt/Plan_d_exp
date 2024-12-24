@@ -47,3 +47,43 @@ order should be less or equal to length of indexes"""
                     if len(a) != 0
                 ]
             )
+
+    def generate_line(self, datas: Mapping[str, float]) -> Sequence[float]:
+        """
+        Generate the coefficients of the first equation
+        """
+
+        set_datas = set(datas.keys())
+        msg0 = ", ".join([f'"{a}"' for a in datas.keys()])
+
+        msg = ""
+        msg += "\n".join(
+            [
+                f'Index "{a}" is missing in : {msg0}'
+                for a in sorted(self.set_indexes - set_datas)
+            ]
+        )
+
+        msg += "".join(
+            [
+                f'\nIndex "{a}" is not a valid index'
+                for a in sorted(set_datas - self.set_indexes)
+            ]
+        )
+
+        if len(msg) != 0:
+            raise ValueError(msg)
+        ret = [
+            1.0,
+        ]
+
+        for i in range(self.order + 1):
+            ret.extend(
+                [
+                    reduce(lambda x, y: x * y, a, 1.0)
+                    for a in cwr((datas[b] for b in self.indexes), i)
+                    if len(a) != 0
+                ]
+            )
+
+        return ret

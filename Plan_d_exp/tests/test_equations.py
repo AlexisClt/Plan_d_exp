@@ -60,3 +60,25 @@ def test_Equations_7() -> None:
         "1.toto",
         "toto.toto",
     ]
+
+
+def test_generate_line_1() -> None:
+    E = Equations(("1", "a"), 0)
+    assert E.generate_line({"1": 1.0, "a": 1.0}) == [
+        1.0,
+    ]
+
+
+def test_generate_line_2() -> None:
+    E = Equations(("1", "a"), 1)
+    assert E.generate_line({"1": 1.0, "a": 1.0}) == [1.0, 1.0, 1.0]
+
+
+def test_generate_line_3() -> None:
+    with pytest.raises(
+        ValueError,
+        match=r"""Index "a" is missing in : "1", "b"
+Index "b" is not a valid index""",
+    ):
+        E = Equations(("1", "a"), 0)
+        E.generate_line({"1": 1.0, "b": 1.0})
