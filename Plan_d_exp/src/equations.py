@@ -1,5 +1,6 @@
 # main class
 import logging
+from collections import Counter
 from collections.abc import Mapping, Sequence
 from functools import reduce
 from itertools import combinations_with_replacement as cwr
@@ -31,6 +32,20 @@ index : {indexes}
 length of indexes : {len(indexes)}
 order should be less or equal to length of indexes"""
             )
+
+        msg0 = "(" + ", ".join([f'"{a}"' for a in indexes]) + ")"
+        msg = "\n".join(
+            [
+                f'Index "{a[1]}" appears {a[0]} times in {msg0}'
+                for a in sorted(
+                    [(b[1], b[0]) for b in list(Counter(indexes).items()) if b[1] != 1],
+                    reverse=True,
+                )
+            ]
+        )
+
+        if len(msg) != 0:
+            raise ValueError(msg)
 
         self.indexes = indexes
         self.set_indexes = set(indexes)

@@ -35,6 +35,23 @@ order should be less or equal to length of indexes""",
         E = Equations(("1", "a"), 3)
 
 
+def test_Equations_4_1() -> None:
+    with pytest.raises(
+        ValueError,
+        match=r"""Index "a" appears 2 times in \("1", "a", "a"\)""",
+    ):
+        E = Equations(("1", "a", "a"), 3)
+
+
+def test_Equations_4_2() -> None:
+    with pytest.raises(
+        ValueError,
+        match=r"""Index "b" appears 3 times in \("b", "1", "b", "a", "a", "b"\)
+Index "a" appears 2 times in \("b", "1", "b", "a", "a", "b"\)""",
+    ):
+        E = Equations(("b", "1", "b", "a", "a", "b"), 3)
+
+
 def test_Equations_5() -> None:
     E = Equations(("1",), 0)
     assert E.col_names == [
