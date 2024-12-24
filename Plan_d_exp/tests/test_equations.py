@@ -62,6 +62,32 @@ def test_Equations_7() -> None:
     ]
 
 
+def test_Equations_8() -> None:
+    E = Equations(("1", "toto", "b"), 3)
+    assert E.col_names == [
+        "mean",
+        "1",
+        "toto",
+        "b",
+        "1.1",
+        "1.toto",
+        "1.b",
+        "toto.toto",
+        "toto.b",
+        "b.b",
+        "1.1.1",
+        "1.1.toto",
+        "1.1.b",
+        "1.toto.toto",
+        "1.toto.b",
+        "1.b.b",
+        "toto.toto.toto",
+        "toto.toto.b",
+        "toto.b.b",
+        "b.b.b",
+    ]
+
+
 def test_generate_line_1() -> None:
     E = Equations(("1", "a"), 0)
     assert E.generate_line({"1": 1.0, "a": 1.0}) == [
@@ -82,3 +108,8 @@ Index "b" is not a valid index""",
     ):
         E = Equations(("1", "a"), 0)
         E.generate_line({"1": 1.0, "b": 1.0})
+
+
+def test_generate_line_4() -> None:
+    E = Equations(("1", "a"), 2)
+    assert E.generate_line({"1": 1.0, "a": 3.0}) == [1.0, 1.0, 3.0, 1.0, 3.0, 9.0]
