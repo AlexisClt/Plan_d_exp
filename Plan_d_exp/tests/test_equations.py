@@ -33,3 +33,30 @@ length of indexes : 2
 order should be less or equal to length of indexes""",
     ):
         E = Equations(("1", "a"), 3)
+
+
+def test_Equations_5() -> None:
+    E = Equations(("1",), 0)
+    assert E.col_names == [
+        "mean",
+    ]
+
+
+def test_Equations_6() -> None:
+    E = Equations(("1",), 1)
+    assert E.col_names == [
+        "mean",
+        "1",
+    ]
+
+
+def test_Equations_7() -> None:
+    E = Equations(("1", "toto"), 2)
+    assert E.col_names == [
+        "mean",
+        "1",
+        "toto",
+        "1.1",
+        "1.toto",
+        "toto.toto",
+    ]

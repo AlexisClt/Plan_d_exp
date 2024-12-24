@@ -1,6 +1,8 @@
 # main class
 import logging
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
+from functools import reduce
+from itertools import combinations_with_replacement as cwr
 
 logger = logging.getLogger(__name__)
 
@@ -28,4 +30,20 @@ class Equations:
 index : {indexes}
 length of indexes : {len(indexes)}
 order should be less or equal to length of indexes"""
+            )
+
+        self.indexes = indexes
+        self.set_indexes = set(indexes)
+        self.order = order
+        self.col_names = [
+            "mean",
+        ]
+
+        for i in range(self.order + 1):
+            self.col_names.extend(
+                [
+                    reduce(lambda x, y: x + "." + y, a)
+                    for a in cwr(self.indexes, i)
+                    if len(a) != 0
+                ]
             )
