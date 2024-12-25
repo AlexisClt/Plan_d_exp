@@ -3,7 +3,7 @@ from typing import Any
 
 import pytest
 
-from Plan_d_exp.src.equations import Equations
+from Plan_d_exp.src.equations import Equations, Plan
 
 
 def test_Equations_1() -> None:
@@ -130,3 +130,7 @@ Index "b" is not a valid index""",
 def test_generate_line_4() -> None:
     E = Equations(("1", "a"), 2)
     assert E.generate_line({"1": 1.0, "a": 3.0}) == [1.0, 1.0, 3.0, 1.0, 3.0, 9.0]
+
+
+def test_Plan_1() -> None:
+    P = Plan(("2", "b"))

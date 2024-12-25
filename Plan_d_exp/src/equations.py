@@ -106,3 +106,13 @@ order should be less or equal to length of indexes"""
             )
 
         return ret
+
+
+class Plan:
+    """
+    Manage and solve several equations
+    """
+
+    def __init__(self, indexes: Sequence[str]) -> None:
+        self.Equations_table: Sequence[Mapping[str, float]] = []
+        self.E = Equations(indexes, 1)
