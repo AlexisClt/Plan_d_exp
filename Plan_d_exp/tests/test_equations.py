@@ -133,4 +133,18 @@ def test_generate_line_4() -> None:
 
 
 def test_Plan_1() -> None:
-    P = Plan(("2", "b"))
+    P = Plan(("1", "2", "3"))
+    assert P.add({"1": 1.0, "2": 1.0, "3": 1.0}) == 1
+    assert P.add({"1": 1.0, "2": -1.0, "3": 1.0}) == 2
+    assert P.add({"1": -1.0, "2": -1.0, "3": -1.0}) == 3
+    assert P.add({"1": -1.0, "2": -1.0, "3": -1.0}) == 4
+
+
+def test_Plan_2() -> None:
+    with pytest.raises(
+        ValueError,
+        match=r"""Index "a" is missing in : "1", "b"
+Index "b" is not a valid index""",
+    ):
+        P = Plan(("1", "a"))
+        P.add({"1": 1.0, "b": 1.0})

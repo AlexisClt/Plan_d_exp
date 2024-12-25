@@ -1,9 +1,14 @@
 # main class
 import logging
 from collections import Counter
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping, MutableSequence, Sequence
 from functools import cached_property, reduce
 from itertools import combinations_with_replacement as cwr
+from typing import Tuple
+
+import numpy as np
+import numpy.typing as npt
+from numpy.linalg import lstsq
 
 logger = logging.getLogger(__name__)
 
@@ -114,5 +119,29 @@ class Plan:
     """
 
     def __init__(self, indexes: Sequence[str]) -> None:
-        self.Equations_table: Sequence[Mapping[str, float]] = []
+        self.Equations_table: MutableSequence[Mapping[str, float]] = []
         self.E = Equations(indexes, 1)
+
+    def add(self, datas: Mapping[str, float]) -> int:
+        """Add an experiment in Plan"""
+
+        self.E.generate_line(datas)
+        self.Equations_table.append(datas)
+
+        return len(self.Equations_table)
+
+    def solve(self, order: int) -> Tuple[npt.NDArray[np.float64], float, int]:
+        """Find the best coefficients for the equations of the plan"""
+
+        E1 = Equations(self.E.indexes, order)
+        M: MutableSequence[float] = []
+
+        for e in self.Equations_table:
+            M.extend(E1.generate_line(e))
+
+        M1 = np.array(M).reshape(len(self.Equations_table), len(E1.col_names))
+        b = np.ones((len(self.Equations_table), 1))
+        a, residuals, rank, eign = lstsq(M1, b)
+        max_diff = np.max(np.abs(M @ a - b))
+
+        return (a, max_diff, rank)
