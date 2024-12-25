@@ -17,6 +17,10 @@ Install requirements
 pip install -r requirements.txt
 ```
 
+### Examples
+
+Some examples are available in the folder `examples`, see the `README` in this folder.
+
 ### Development
 
 Launch unit tests using pytest
