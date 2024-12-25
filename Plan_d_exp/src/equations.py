@@ -2,7 +2,7 @@
 import logging
 from collections import Counter
 from collections.abc import Mapping, Sequence
-from functools import reduce
+from functools import cached_property, reduce
 from itertools import combinations_with_replacement as cwr
 
 logger = logging.getLogger(__name__)
@@ -50,18 +50,22 @@ order should be less or equal to length of indexes"""
         self.indexes = indexes
         self.set_indexes = set(indexes)
         self.order = order
-        self.col_names = [
+
+    @cached_property
+    def col_names(self) -> Sequence[str]:
+        col_names = [
             "mean",
         ]
 
         for i in range(self.order + 1):
-            self.col_names.extend(
+            col_names.extend(
                 [
                     reduce(lambda x, y: x + "." + y, a)
                     for a in cwr(self.indexes, i)
                     if len(a) != 0
                 ]
             )
+        return col_names
 
     def generate_line(self, datas: Mapping[str, float]) -> Sequence[float]:
         """
