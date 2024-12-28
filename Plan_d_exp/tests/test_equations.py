@@ -105,6 +105,79 @@ def test_Equations_8() -> None:
     ]
 
 
+def test_Equations_9() -> None:
+    E = Equations(("1", "b", "2", "a"), 2)
+    assert E.generate_circular({"1": 2.0, "2": 4.0}, {"a": -2.0, "b": 6.0}) == [
+        {"1": 2.0, "b": 6.0, "2": 4.0, "a": -2.0},
+        {"1": 2.0, "b": -2.0, "2": 4.0, "a": 6.0},
+    ]
+
+
+def test_Equations_10() -> None:
+    E = Equations(("1", "b", "2", "a"), 2)
+    assert E.generate_circular({}, {"1": 2.0, "2": 4.0, "a": -2.0, "b": 6.0}) == [
+        {"1": 2.0, "b": 6.0, "2": 4.0, "a": -2.0},
+        {"1": -2.0, "b": 2.0, "2": 6.0, "a": 4.0},
+        {"1": 4.0, "b": -2.0, "2": 2.0, "a": 6.0},
+        {"1": 6.0, "b": 4.0, "2": -2.0, "a": 2.0},
+    ]
+
+
+def test_Equations_11() -> None:
+    E = Equations(("1", "b", "2", "a"), 2)
+    assert E.generate_circular({"1": 2.0, "2": 4.0, "a": -2.0, "b": 6.0}, {}) == [
+        {"1": 2.0, "b": 6.0, "2": 4.0, "a": -2.0},
+    ]
+
+
+def test_Equations_12() -> None:
+    with pytest.raises(
+        ValueError,
+        match=r"""Index '1' is missing in either :
+{'2': 4.0}
+or
+{'a': -2.0, 'b': 6.0}""",
+    ):
+        E = Equations(("1", "b", "2", "a"), 2)
+        E.generate_circular({"2": 4.0}, {"a": -2.0, "b": 6.0})
+
+
+def test_Equations_13() -> None:
+    with pytest.raises(
+        ValueError,
+        match=r"""Index '1' is in both arguments :
+{'1': 2.0, '2': 4.0}
+and
+{'1': 2.0, 'a': -2.0, 'b': 6.0}""",
+    ):
+        E = Equations(("1", "b", "2", "a"), 2)
+        E.generate_circular({"1": 2.0, "2": 4.0}, {"1": 2.0, "a": -2.0, "b": 6.0})
+
+
+def test_Equations_14() -> None:
+    with pytest.raises(
+        ValueError,
+        match=r"""Index 'c' in :
+{'c': 2.0, 'a': -2.0, 'b': 6.0}
+but not in :
+\('1', 'b', '2', 'a'\)""",
+    ):
+        E = Equations(("1", "b", "2", "a"), 2)
+        E.generate_circular({"1": 2.0, "2": 4.0}, {"c": 2.0, "a": -2.0, "b": 6.0})
+
+
+def test_Equations_15() -> None:
+    with pytest.raises(
+        ValueError,
+        match=r"""Index 'c' in :
+{'c': 3.0, '1': 2.0, '2': 4.0}
+but not in :
+\('1', 'b', '2', 'a'\)""",
+    ):
+        E = Equations(("1", "b", "2", "a"), 2)
+        E.generate_circular({"c": 3.0, "1": 2.0, "2": 4.0}, {"a": -2.0, "b": 6.0})
+
+
 def test_generate_line_1() -> None:
     E = Equations(("1", "a"), 0)
     assert E.generate_line({"1": 1.0, "a": 1.0}) == [

@@ -55,6 +55,7 @@ order should be less or equal to length of indexes"""
         self.indexes = indexes
         self.set_indexes = set(indexes)
         self.order = order
+        self.ind_indexes = dict((i[1], i[0]) for i in enumerate(indexes))
 
     @cached_property
     def col_names(self) -> Sequence[str]:
@@ -111,6 +112,88 @@ order should be less or equal to length of indexes"""
             )
 
         return ret
+
+    def generate_circular(
+        self, data1: Mapping[str, float], data2: Mapping[str, float]
+    ) -> MutableSequence[Mapping[str, float]]:
+
+        s1 = set(data1.keys())
+        s2 = set(data2.keys())
+        s3 = s1 & s2
+
+        msg0 = ", ".join([f"'{a}'" for a in sorted(s3)])
+        if len(msg0) != 0:
+            raise ValueError(
+                f"""Index {msg0} is in both arguments :
+{data1}
+and
+{data2}"""
+            )
+
+        s4 = self.set_indexes - s1 - s2
+        msg0 = ", ".join([f"'{a}'" for a in sorted(s4)])
+        if len(msg0) != 0:
+            raise ValueError(
+                f"""Index {msg0} is missing in either :
+{data1}
+or
+{data2}"""
+            )
+
+        s5 = s1 - self.set_indexes
+        s6 = s2 - self.set_indexes
+
+        msg0 = ", ".join([f"'{a}'" for a in sorted(s5)])
+        if len(msg0) != 0:
+            raise ValueError(
+                f"""Index {msg0} in :
+{data1}
+but not in :
+{self.indexes}"""
+            )
+
+        msg0 = ", ".join([f"'{a}'" for a in sorted(s6)])
+        if len(msg0) != 0:
+            raise ValueError(
+                f"""Index {msg0} in :
+{data2}
+but not in :
+{self.indexes}"""
+            )
+
+        res: MutableSequence[Mapping[str, float]] = []
+
+        constant = list(data1.items())
+        variable = [
+            (a[1], a[2])
+            for a in sorted(
+                [(self.ind_indexes[b[0]], b[0], b[1]) for b in data2.items()],
+                key=lambda x: x[0],
+            )
+        ]
+
+        k1 = list(map(lambda x: x[0], variable))
+        v1 = list(map(lambda x: x[1], variable))
+
+        res.append(dict(constant + variable))
+        for i in range(len(k1) - 1):
+            ele = v1.pop(-1)
+            v1 = [
+                ele,
+            ] + v1
+            res.append(
+                dict(
+                    constant
+                    + list(
+                        zip(
+                            k1,
+                            v1,
+                        )
+                    )
+                )
+            )
+
+        return res
 
 
 class Plan:
