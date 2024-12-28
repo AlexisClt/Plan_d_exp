@@ -213,8 +213,26 @@ class Plan:
 
         return len(self.Equations_table)
 
-    def solve(self, order: int) -> Tuple[npt.NDArray[np.float64], float, int]:
-        """Find the best coefficients for the equations of the plan"""
+    def solve(
+        self, order: int, b: npt.NDArray[np.float64]
+    ) -> Tuple[npt.NDArray[np.float64], float, float, int]:
+        """Solve and find the coefficients"""
+
+        E1 = Equations(self.E.indexes, order)
+        M: MutableSequence[float] = []
+
+        for e in self.Equations_table:
+            M.extend(E1.generate_line(e))
+
+        M1 = np.array(M).reshape(len(self.Equations_table), len(E1.col_names))
+        a, residuals, rank, eign = lstsq(M1, b)
+        max_diff = np.max(M @ a - b)
+        min_diff = np.min(M @ a - b)
+
+        return (a, max_diff, min_diff, rank)
+
+    def precision(self, order: int) -> Tuple[float, int, float, int]:
+        """Find the precision"""
 
         E1 = Equations(self.E.indexes, order)
         M: MutableSequence[float] = []
@@ -227,4 +245,14 @@ class Plan:
         a, residuals, rank, eign = lstsq(M1, b)
         max_diff = np.max(np.abs(M @ a - b))
 
-        return (a, max_diff, rank)
+        return (max_diff, rank, eign[0], eign[rank - 1])
+
+    def generate_circular(
+        self, data1: Mapping[str, float], data2: Mapping[str, float]
+    ) -> None:
+        """Add new equations
+        Using data1 and data2, new equations are generated using data1 as constant value associated to its indexes,
+        data2 will be used to generate values associated to its indexes using circular permutation.
+        The keys of data1 + data2 must be equal to self.indexes.
+        """
+        self.Equations_table.extend(self.E.generate_circular(data1, data2))
