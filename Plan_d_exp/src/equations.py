@@ -203,13 +203,15 @@ class Plan:
 
     def __init__(self, indexes: Sequence[str]) -> None:
         self.Equations_table: MutableSequence[Mapping[str, float]] = []
+        self.Equations_name: MutableSequence[str] = []
         self.E = Equations(indexes, 1)
 
-    def add(self, datas: Mapping[str, float]) -> int:
+    def add(self, datas: Mapping[str, float], name: str) -> int:
         """Add an experiment in Plan"""
 
         self.E.generate_line(datas)
         self.Equations_table.append(datas)
+        self.Equations_name.append(name)
 
         return len(self.Equations_table)
 

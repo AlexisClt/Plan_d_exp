@@ -207,10 +207,17 @@ def test_generate_line_4() -> None:
 
 def test_Plan_1() -> None:
     P = Plan(("1", "2", "3"))
-    assert P.add({"1": 1.0, "2": 1.0, "3": 1.0}) == 1
-    assert P.add({"1": 1.0, "2": -1.0, "3": 1.0}) == 2
-    assert P.add({"1": -1.0, "2": -1.0, "3": -1.0}) == 3
-    assert P.add({"1": -1.0, "2": -1.0, "3": -1.0}) == 4
+    assert P.Equations_name == []
+    assert P.add({"1": 1.0, "2": 1.0, "3": 1.0}, "eq1") == 1
+    assert P.add({"1": 1.0, "2": -1.0, "3": 1.0}, "eq2") == 2
+    assert P.add({"1": -1.0, "2": -1.0, "3": -1.0}, "eq3") == 3
+    assert P.add({"1": -1.0, "2": -1.0, "3": -1.0}, "eq4") == 4
+    assert P.Equations_name == [
+        "eq1",
+        "eq2",
+        "eq3",
+        "eq4",
+    ]
 
 
 def test_Plan_2() -> None:
@@ -220,4 +227,4 @@ def test_Plan_2() -> None:
 Index "b" is not a valid index""",
     ):
         P = Plan(("1", "a"))
-        P.add({"1": 1.0, "b": 1.0})
+        P.add({"1": 1.0, "b": 1.0}, "eq5")
