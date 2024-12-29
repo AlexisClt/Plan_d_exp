@@ -259,6 +259,30 @@ class Plan:
         self.Equations_name: MutableSequence[str] = []
         self.E = Equations(indexes, 1)
 
+    def to_csv(self, sep: str = ";") -> str:
+        """Return the content of the object in csv format"""
+        ret = (
+            sep.join(
+                [
+                    "Name",
+                ]
+                + list(self.E.indexes)
+            )
+            + "\n"
+        )
+        ret += "\n".join(
+            (
+                sep.join(
+                    [
+                        a,
+                    ]
+                    + [str(b[c]) for c in self.E.indexes]
+                )
+                for a, b in zip(self.Equations_name, self.Equations_table)
+            )
+        )
+        return ret
+
     def add(self, datas: Mapping[str, float], name: str) -> int:
         """Add an experiment in Plan"""
 
