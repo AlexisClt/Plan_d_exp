@@ -250,11 +250,16 @@ class Plan:
         return (max_diff, rank, eign[0], eign[rank - 1])
 
     def generate_circular(
-        self, data1: Mapping[str, float], data2: Mapping[str, float]
+        self, data1: Mapping[str, float], data2: Mapping[str, float], template_name: str
     ) -> None:
         """Add new equations
         Using data1 and data2, new equations are generated using data1 as constant value associated to its indexes,
         data2 will be used to generate values associated to its indexes using circular permutation.
         The keys of data1 + data2 must be equal to self.indexes.
+        Each new Equation is named using incremental name starting at 1 based on template_name
         """
-        self.Equations_table.extend(self.E.generate_circular(data1, data2))
+        gen_cir = self.E.generate_circular(data1, data2)
+        self.Equations_name.extend(
+            [(template_name + f"_{i}") for i in range(1, len(gen_cir) + 1)]
+        )
+        self.Equations_table.extend(gen_cir)
