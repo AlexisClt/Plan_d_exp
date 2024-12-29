@@ -178,6 +178,31 @@ but not in :
         E.generate_circular({"c": 3.0, "1": 2.0, "2": 4.0}, {"a": -2.0, "b": 6.0})
 
 
+def test_Equations_16() -> None:
+    with pytest.raises(
+        ValueError,
+        match=r"""List of index : 'a'
+are empty in :
+{'a': \[\], 'b': \[6.0, 3.0, 4.0\]}""",
+    ):
+        E = Equations(("1", "b", "2", "a"), 2)
+        E.generate_product({"1": 2.0, "2": 4.0}, {"a": [], "b": [6.0, 3.0, 4.0]})
+
+
+def test_Equations_17() -> None:
+    E = Equations(("1", "b", "2", "a"), 2)
+    assert E.generate_product(
+        {"1": 2.0, "2": 4.0}, {"a": [1.0, 2.0], "b": [6.0, 3.0, 4.0]}
+    ) == [
+        {"1": 2.0, "b": 6.0, "2": 4.0, "a": 1.0},
+        {"1": 2.0, "b": 6.0, "2": 4.0, "a": 2.0},
+        {"1": 2.0, "b": 3.0, "2": 4.0, "a": 1.0},
+        {"1": 2.0, "b": 3.0, "2": 4.0, "a": 2.0},
+        {"1": 2.0, "b": 4.0, "2": 4.0, "a": 1.0},
+        {"1": 2.0, "b": 4.0, "2": 4.0, "a": 2.0},
+    ]
+
+
 def test_generate_line_1() -> None:
     E = Equations(("1", "a"), 0)
     assert E.generate_line({"1": 1.0, "a": 1.0}) == [
@@ -245,4 +270,21 @@ def test_Plan_3() -> None:
         "E_2",
         "E_3",
         "E_4",
+    ]
+
+
+def test_Plan_4() -> None:
+    P = Plan(("1", "b", "2", "a"))
+    P.generate_product({"a": 1.0, "b": 2.0}, {"1": [3.0, 4.0], "2": [5.0, 6.0]}, "P")
+    assert P.Equations_table == [
+        {"1": 3.0, "b": 2.0, "2": 5.0, "a": 1.0},
+        {"1": 3.0, "b": 2.0, "2": 6.0, "a": 1.0},
+        {"1": 4.0, "b": 2.0, "2": 5.0, "a": 1.0},
+        {"1": 4.0, "b": 2.0, "2": 6.0, "a": 1.0},
+    ]
+    assert P.Equations_name == [
+        "P_1",
+        "P_2",
+        "P_3",
+        "P_4",
     ]

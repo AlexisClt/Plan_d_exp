@@ -4,6 +4,7 @@ from collections import Counter
 from collections.abc import Mapping, MutableSequence, Sequence
 from functools import cached_property, reduce
 from itertools import combinations_with_replacement as cwr
+from itertools import product
 from typing import Tuple
 
 import numpy as np
@@ -113,9 +114,9 @@ order should be less or equal to length of indexes"""
 
         return ret
 
-    def generate_circular(
+    def check_datas(
         self, data1: Mapping[str, float], data2: Mapping[str, float]
-    ) -> MutableSequence[Mapping[str, float]]:
+    ) -> bool:
 
         s1 = set(data1.keys())
         s2 = set(data2.keys())
@@ -161,6 +162,14 @@ but not in :
 {self.indexes}"""
             )
 
+        return True
+
+    def generate_circular(
+        self, data1: Mapping[str, float], data2: Mapping[str, float]
+    ) -> MutableSequence[Mapping[str, float]]:
+
+        self.check_datas(data1, data2)
+
         res: MutableSequence[Mapping[str, float]] = []
 
         constant = list(data1.items())
@@ -188,6 +197,50 @@ but not in :
                         zip(
                             k1,
                             v1,
+                        )
+                    )
+                )
+            )
+
+        return res
+
+    def generate_product(
+        self, data1: Mapping[str, float], data2: Mapping[str, Sequence[float]]
+    ) -> MutableSequence[Mapping[str, float]]:
+
+        msg0 = ", ".join([f"'{k}'" for k, v in data2.items() if len(v) == 0])
+
+        if len(msg0) != 0:
+            raise ValueError(
+                f"""List of index : {msg0}
+are empty in :
+{data2}"""
+            )
+
+        self.check_datas(data1, dict([(k, v[0]) for k, v in data2.items()]))
+
+        res: MutableSequence[Mapping[str, float]] = []
+
+        constant = list(data1.items())
+        variable = [
+            (a[1], a[2])
+            for a in sorted(
+                [(self.ind_indexes[b[0]], b[0], b[1]) for b in data2.items()],
+                key=lambda x: x[0],
+            )
+        ]
+
+        k1 = list(map(lambda x: x[0], variable))
+        v1 = list(product(*map(lambda x: x[1], variable)))
+
+        for i in v1:
+            res.append(
+                dict(
+                    constant
+                    + list(
+                        zip(
+                            k1,
+                            i,
                         )
                     )
                 )
@@ -263,3 +316,19 @@ class Plan:
             [(template_name + f"_{i}") for i in range(1, len(gen_cir) + 1)]
         )
         self.Equations_table.extend(gen_cir)
+
+    def generate_product(
+        self,
+        data1: Mapping[str, float],
+        data2: Mapping[str, Sequence[float]],
+        template_name: str,
+    ) -> None:
+        """Add new equations
+        Using data, new equations are generated my combining values in lists elements
+        Each new Equation is named using incremental name starting at 1 based on template_name
+        """
+        gen_prod = self.E.generate_product(data1, data2)
+        self.Equations_name.extend(
+            [(template_name + f"_{i}") for i in range(1, len(gen_prod) + 1)]
+        )
+        self.Equations_table.extend(gen_prod)
