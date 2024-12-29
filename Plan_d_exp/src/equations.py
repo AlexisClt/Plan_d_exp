@@ -295,7 +295,12 @@ class Plan:
     def solve(
         self, order: int, b: npt.NDArray[np.float64]
     ) -> Tuple[npt.NDArray[np.float64], float, float, int]:
-        """Solve and find the coefficients"""
+        """Solve and find the coefficients
+        return:
+        the solution a of M @ a = b
+        the maximum difference between M @ a and b
+        the minimum difference between M @ a and b
+        the rank"""
 
         E1 = Equations(self.E.indexes, order)
         M: MutableSequence[float] = []
@@ -305,13 +310,22 @@ class Plan:
 
         M1 = np.array(M).reshape(len(self.Equations_table), len(E1.col_names))
         a, residuals, rank, eign = lstsq(M1, b)
-        max_diff = np.max(M @ a - b)
-        min_diff = np.min(M @ a - b)
+        max_diff = np.max(M1 @ a - b)
+        min_diff = np.min(M1 @ a - b)
 
         return (a, max_diff, min_diff, rank)
 
-    def precision(self, order: int) -> Tuple[float, int, float, int]:
-        """Find the precision"""
+    def precision(
+        self, order: int
+    ) -> Tuple[float, int, float, int, npt.NDArray[np.float64]]:
+        """Find the precision
+        return:
+        maximum difference between M @ a and b (b=1 so it is the maximum percentage)
+        the rank
+        first (highest) eigen value
+        last non-zero (lowest) eigen value
+        the associated matrix of the design experiment
+        """
 
         E1 = Equations(self.E.indexes, order)
         M: MutableSequence[float] = []
@@ -322,9 +336,9 @@ class Plan:
         M1 = np.array(M).reshape(len(self.Equations_table), len(E1.col_names))
         b = np.ones((len(self.Equations_table), 1))
         a, residuals, rank, eign = lstsq(M1, b)
-        max_diff = np.max(np.abs(M @ a - b))
+        max_diff = np.max(np.abs(M1 @ a - b))
 
-        return (max_diff, rank, eign[0], eign[rank - 1])
+        return (max_diff, rank, eign[0], eign[rank - 1], M1)
 
     def generate_circular(
         self, data1: Mapping[str, float], data2: Mapping[str, float], template_name: str

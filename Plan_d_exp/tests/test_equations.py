@@ -1,6 +1,8 @@
 import logging
+from math import fabs
 from typing import Any
 
+import numpy as np
 import pytest
 
 from Plan_d_exp.src.equations import Equations, Plan
@@ -306,3 +308,15 @@ P_2;3.0;2.0;6.0;1.0
 P_3;4.0;2.0;5.0;1.0
 P_4;4.0;2.0;6.0;1.0"""
     )
+
+
+def test_Plan_6() -> None:
+    P = Plan(("1", "b", "2", "a"))
+    P.generate_circular({}, {"1": 2.0, "2": 4.0, "a": -2.0, "b": 6.0}, "E")
+    P.generate_product({"a": 1.0, "b": 2.0}, {"1": [3.0, 4.0], "2": [5.0, 6.0]}, "P")
+    ma, r, f1, f2, M = P.precision(2)
+    assert fabs(ma) < 9e-16
+    assert r == 8
+    assert 98.096 < f1 < 98.097
+    assert 0.19001 < f2 < 0.19002
+    assert M.shape == (8, 15)
