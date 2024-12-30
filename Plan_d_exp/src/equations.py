@@ -1,17 +1,25 @@
 # main class
 import logging
 from collections import Counter
-from collections.abc import Mapping, MutableSequence, Sequence
+from collections.abc import Iterable, Mapping, MutableSequence, Sequence
 from functools import cached_property, reduce
 from itertools import combinations_with_replacement as cwr
 from itertools import product
-from typing import Tuple
+from string import ascii_uppercase
+from typing import Any, Tuple
 
 import numpy as np
 import numpy.typing as npt
 from numpy.linalg import lstsq
 
 logger = logging.getLogger(__name__)
+
+
+def chain2(i1: Iterable[str], i2: Iterable[str]) -> Iterable[str]:
+    for ele in i1:
+        yield ele
+    for ele in i2:
+        yield ele
 
 
 class Equations:
@@ -73,6 +81,35 @@ order should be less or equal to length of indexes"""
                 ]
             )
         return col_names
+
+    @cached_property
+    def excel_columns(self) -> Sequence[str]:
+        """
+        Returns the len(col_names) first column names of an excel sheet
+        """
+        return list(
+            map(
+                lambda x: x[1],
+                zip(
+                    range(1, len(self.col_names) + 3),
+                    chain2(
+                        iter(ascii_uppercase),
+                        (i[0] + i[1] for i in product(ascii_uppercase, repeat=2)),
+                    ),
+                ),
+            )
+        )
+
+    def to_excel_formula(self, data: np.ndarray[Tuple[int, int], np.dtype[Any]]) -> str:
+        """
+        Generates formula associated with the equation
+        First variable starts at second column
+        """
+        res = f"={data[0,0]}"
+        res += "".join(
+            (f"{a:+}*{b}2" for a, b in zip(data[0, 1:], self.excel_columns[1:]))
+        )
+        return res
 
     def generate_line(self, datas: Mapping[str, float]) -> Sequence[float]:
         """
