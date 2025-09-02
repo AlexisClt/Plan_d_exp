@@ -357,15 +357,53 @@ def limi_1(
 
 def limi_2(
     lst_name: Sequence[str],
-) -> Mapping[int, MutableSequence[Sequence[Sequence[int]]]]:
-    res: Mapping[int, MutableSequence[Sequence[Sequence[int]]]] = {}
+) -> Mapping[int, MutableSequence[Sequence[Sequence[str]]]]:
+    res: Mapping[int, MutableSequence[Sequence[Sequence[str]]]] = {}
+    res = dict(
+        (
+            (
+                i,
+                [
+                    c[1]
+                    for c in filter(
+                        lambda x: all((y[1] <= 2 for y in x[0])),
+                        (
+                            (tuple(Counter(b).items()), b)
+                            for b in (list(a) for a in cwr(list(range(nb)), i))
+                            if len(b) != 0
+                        ),
+                    )
+                ],
+            )
+            for i in range(1, 2 * len(lst_name) + 1)
+        )
+    )
+    return res
     return res
 
 
 def limi_3(
-    order: int,
+    nb: int,
 ) -> Mapping[int, MutableSequence[Sequence[Sequence[int]]]]:
     res: Mapping[int, MutableSequence[Sequence[Sequence[int]]]] = {}
+    res = dict(
+        (
+            (
+                i,
+                list(
+                    filter(
+                        lambda x: all((y[1] <= 2 for y in x)),
+                        (
+                            tuple(Counter(b).items())
+                            for b in (list(a) for a in cwr(list(range(nb)), i))
+                            if len(b) != 0
+                        ),
+                    )
+                ),
+            )
+            for i in range(1, 2 * nb + 1)
+        )
+    )
     return res
 
 
@@ -457,8 +495,8 @@ class Equations:
         self.ind_indexes = dict((i[1], i[0]) for i in enumerate(indexes2))
         self.latex_indexes = dict(((i, i) for i in indexes2))
         self.fic_names = dict(((i, i.replace(":", "_")) for i in indexes2))
-        self.limi = limi_1(len(indexes2), order)
-        self.powers = sorted(self.limi.keys())
+        self.dct_cwr_ind = limi_1(len(indexes2), order)
+        self.powers = sorted(self.dct_cwr_ind.keys())
         self.power = "**"
 
     def check_indexes(self, indexes: Sequence[str], order: int) -> Sequence[str]:
@@ -524,7 +562,7 @@ order should be less or equal to length of indexes"""
                             for b in a
                         ),
                     )
-                    for a in self.limi[i]
+                    for a in self.dct_cwr_ind[i]
                     if len(a) != 0
                 ]
             )
@@ -597,7 +635,7 @@ order should be less or equal to length of indexes"""
                         (datas[self.indexes[b[0]]] ** b[1] for b in a),
                         1.0,
                     )
-                    for a in self.limi[i]
+                    for a in self.dct_cwr_ind[i]
                     if len(a) != 0
                 ]
             )
@@ -761,7 +799,21 @@ class Equations_tri(Equations):
     """
 
     def __init__(self, indexes: Sequence[str], order: int) -> None:
-        super().__init__(indexes, order)
+        """
+        Init of class
+        indexes are the indexes of the X_i s
+        order is the maximum order of the equation
+        """
+        indexes2 = self.check_indexes(indexes, order)
+        self.indexes = indexes2
+        self.set_indexes = set(indexes2)
+        self.order = order
+        self.ind_indexes = dict((i[1], i[0]) for i in enumerate(indexes2))
+        self.latex_indexes = dict(((i, i) for i in indexes2))
+        self.fic_names = dict(((i, i.replace(":", "_")) for i in indexes2))
+        self.dct_cwr_ind = limi_3(len(indexes2))
+        self.powers = sorted(self.dct_cwr_ind.keys())
+        self.power = "**"
 
 
 @dataclass(frozen=True)

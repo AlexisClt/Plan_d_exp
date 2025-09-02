@@ -100,8 +100,7 @@ def test_Equations_3(caplog: Any) -> None:
         assert caplog.record_tuples == [
             ("Plan_d_exp.src.equations", logging.WARNING, "order is 0")
         ]
-        assert len(E.dict_cwr_ind) == 0
-        assert len(E.dict_cwr_str) == 0
+        assert len(E.dct_cwr_ind) == 0
 
 
 def test_Equations_4() -> None:
@@ -145,10 +144,7 @@ def test_Equations_6() -> None:
         "mean",
         "1",
     ]
-    assert E.dict_cwr_str == {
-        1: (("1",),),
-    }
-    assert E.dict_cwr_ind == {
+    assert E.dct_cwr_ind == {
         1: [
             ((0, 1),),
         ],
@@ -165,11 +161,7 @@ def test_Equations_7() -> None:
         "1.toto",
         "toto**2",
     ]
-    assert E.dict_cwr_str == {
-        1: (("1",), ("toto",)),
-        2: (("1", "1"), ("1", "toto"), ("toto", "toto")),
-    }
-    assert E.dict_cwr_ind == {
+    assert E.dct_cwr_ind == {
         1: [((0, 1),), ((1, 1),)],
         2: [((0, 2),), ((0, 1), (1, 1)), ((1, 2),)],
     }
@@ -199,30 +191,7 @@ def test_Equations_8() -> None:
         "toto.b**2",
         "b**3",
     ]
-    assert E.dict_cwr_str == {
-        1: (("1",), ("toto",), ("b",)),
-        2: (
-            ("1", "1"),
-            ("1", "toto"),
-            ("1", "b"),
-            ("toto", "toto"),
-            ("toto", "b"),
-            ("b", "b"),
-        ),
-        3: (
-            ("1", "1", "1"),
-            ("1", "1", "toto"),
-            ("1", "1", "b"),
-            ("1", "toto", "toto"),
-            ("1", "toto", "b"),
-            ("1", "b", "b"),
-            ("toto", "toto", "toto"),
-            ("toto", "toto", "b"),
-            ("toto", "b", "b"),
-            ("b", "b", "b"),
-        ),
-    }
-    assert E.dict_cwr_ind == {
+    assert E.dct_cwr_ind == {
         1: [
             ((0, 1),),
             ((1, 1),),
