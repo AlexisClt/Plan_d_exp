@@ -339,6 +339,19 @@ def limi_1(
     nb: int, order: int
 ) -> Mapping[int, MutableSequence[Sequence[Sequence[int]]]]:
     res: Mapping[int, MutableSequence[Sequence[Sequence[int]]]] = {}
+    res = dict(
+        (
+            (
+                i,
+                [
+                    tuple(Counter(b).items())
+                    for b in (list(a) for a in cwr(list(range(nb)), i))
+                    if len(b) != 0
+                ],
+            )
+            for i in range(1, order + 1)
+        )
+    )
     return res
 
 
@@ -437,6 +450,22 @@ class Equations:
         indexes are the indexes of the X_i s
         order is the maximum order of the equation
         """
+        indexes2 = self.check_indexes(indexes, order)
+        self.indexes = indexes2
+        self.set_indexes = set(indexes2)
+        self.order = order
+        self.ind_indexes = dict((i[1], i[0]) for i in enumerate(indexes2))
+        self.latex_indexes = dict(((i, i) for i in indexes2))
+        self.fic_names = dict(((i, i.replace(":", "_")) for i in indexes2))
+        self.limi = limi_1(len(indexes2), order)
+        self.powers = sorted(self.limi.keys())
+        self.power = "**"
+
+    def check_indexes(self, indexes: Sequence[str], order: int) -> Sequence[str]:
+        """
+        check for datas feed to __init__
+        return indexes2 if no errors
+        """
         if len(indexes) == 0:
             raise ValueError("indexes is empty")
         if order < 0:
@@ -473,13 +502,7 @@ order should be less or equal to length of indexes"""
 
         if len(msg) != 0:
             raise ValueError(msg)
-
-        self.indexes = indexes2
-        self.set_indexes = set(indexes2)
-        self.order = order
-        self.ind_indexes = dict((i[1], i[0]) for i in enumerate(indexes2))
-        self.latex_indexes = dict(((i, i) for i in indexes2))
-        self.fic_names = dict(((i, i.replace(":", "_")) for i in indexes2))
+        return indexes2
 
     @cached_property
     def col_names(self) -> Sequence[str]:
@@ -487,11 +510,21 @@ order should be less or equal to length of indexes"""
             "mean",
         ]
 
-        for i in range(self.order + 1):
+        for i in self.powers:
             col_names.extend(
                 [
-                    reduce(lambda x, y: x + "." + y, a)
-                    for a in combinations(self.indexes, i)
+                    reduce(
+                        lambda x, y: x + "." + y,
+                        (
+                            (
+                                "{0}{2}{1}".format(self.indexes[b[0]], b[1], self.power)
+                                if (b[1] > 1)
+                                else "{0}".format(self.indexes[b[0]])
+                            )
+                            for b in a
+                        ),
+                    )
+                    for a in self.limi[i]
                     if len(a) != 0
                 ]
             )
@@ -556,11 +589,15 @@ order should be less or equal to length of indexes"""
             1.0,
         ]
 
-        for i in range(self.order + 1):
+        for i in self.powers:
             ret.extend(
                 [
-                    reduce(lambda x, y: x * y, a, 1.0)
-                    for a in combinations((datas[b] for b in self.indexes), i)
+                    reduce(
+                        lambda x, y: x * y,
+                        (datas[self.indexes[b[0]]] ** b[1] for b in a),
+                        1.0,
+                    )
+                    for a in self.limi[i]
                     if len(a) != 0
                 ]
             )
