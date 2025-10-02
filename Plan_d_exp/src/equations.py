@@ -825,6 +825,20 @@ class Equations_tri(Equations):
 
 
 @dataclass(frozen=True)
+class Prec_Bougie:
+    """
+    valeur pour la précision de to_csv
+    """
+
+    coef_inv: float
+    prec: D
+
+
+PB0 = Prec_Bougie(1, D("0.001"))
+PB2 = Prec_Bougie(1000, D("0.01"))
+
+
+@dataclass(frozen=True)
 class Bougie:
     """
     données pour tracer les bougies
@@ -836,6 +850,12 @@ class Bougie:
     pct_25: float
     pct_50: float
     pct_75: float
+
+    def to_csv1(self, PB: Prec_Bougie) -> Sequence[str]:
+        """
+        fonction générique pour écrire une ligne de fichier excel
+        """
+        return [f"{D(a*PB.coef_inv).quantize(PB.prec)}" for a in astuple(self)[1:6]]
 
     def to_csv_0(self) -> Sequence[str]:
         return [f"{D(a).quantize(D('0.001'))}" for a in astuple(self)[1:6]]
@@ -888,6 +908,23 @@ class Bougie:
 
 
 @dataclass(frozen=True)
+class Prec_Courbe1:
+    """
+    valeur pour la précision de to_csv
+    """
+
+    PB: Prec_Bougie
+    mu_coef_inv: float
+    mu_prec: D
+    var_coef_inv: float
+    var_prec: D
+
+
+PC1_0 = Prec_Courbe1(PB0, 1.0, D("0.001"), 1000.0, D("1.0"))
+PC1_1 = Prec_Courbe1(PB0, 1.0, D("0.001"), 1.0, D("0.001"))
+
+
+@dataclass(frozen=True)
 class Courbe1(Bougie):
     """
     données pour tracer les bougies
@@ -899,15 +936,40 @@ class Courbe1(Bougie):
     mu_samp: float
     var_samp: float
 
-    def to_csv(self, conv: Mapping[Tuple[str, int], str]) -> str:
+    def to_csv(
+        self, conv: Mapping[Tuple[str, int], str], PC1: Prec_Courbe1 = PC1_0
+    ) -> str:
         ret: List[str] = []
         ret.append(conv.get((self.name, self.bit), "ERR"))
         ret.append(f"{self.bit}")
-        ret.extend(self.to_csv_0())
+        ret.extend(self.to_csv1(PC1.PB))
         ret.append(f"{self.sample_size}")
-        ret.extend((f"{D(a).quantize(D('0.001'))}" for a in astuple(self)[9:10]))
-        ret.extend((f"{D(1000*a).quantize(D('1.0'))}" for a in astuple(self)[10:]))
+        ret.extend(
+            (
+                f"{D(PC1.mu_coef_inv*a).quantize(PC1.mu_prec)}"
+                for a in astuple(self)[9:10]
+            )
+        )
+        ret.extend(
+            (
+                f"{D(PC1.var_coef_inv*a).quantize(PC1.var_prec)}"
+                for a in astuple(self)[10:]
+            )
+        )
         return ";".join(ret)
+
+
+@dataclass(frozen=True)
+class Prec_Proba1:
+    """
+    valeur pour la précision de to_csv
+    """
+
+    b_coef_inv: float
+    b_prec: D
+
+
+PP1_0 = Prec_Proba1(1.0, D("0.001"))
 
 
 @dataclass
@@ -941,12 +1003,31 @@ class Proba1:
         ret.append(f"{D(self.normaltest_pvaluep).quantize(D('0.1'))}%")
         return ";".join(ret)
 
-    def to_csv2(self, conv: Mapping[Tuple[str, int], str]) -> str:
+    def to_csv2(
+        self, conv: Mapping[Tuple[str, int], str], PP1: Prec_Proba1 = PP1_0
+    ) -> str:
         ret: List[str] = []
         ret.append(f"{self.v}")
         for st in zip(self.stdinvt, self.b_inf, self.b_sup):
-            ret.extend((f"{D(a).quantize(D('0.001'))}" for a in st))
+            ret.extend((f"{D(PP1.b_coef_inv*a).quantize(PP1.b_prec)}" for a in st))
         return ";".join(ret)
+
+
+@dataclass(frozen=True)
+class Prec_Courbe2:
+    """
+    valeur pour la précision de to_csv
+    """
+
+    PB: Prec_Bougie
+    mu_coef_inv: float
+    mu_prec: D
+    var_coef_inv: float
+    var_prec: D
+
+
+PC2_0 = Prec_Courbe2(PB2, 1000.0, D("0.01"), 100000.0, D("1.0"))
+PC2_1 = Prec_Courbe2(PB2, 1000.0, D("0.01"), 1000.0, D("1.00"))
 
 
 @dataclass(frozen=True)
@@ -963,17 +1044,42 @@ class Courbe2(Bougie):
     mu_samp: float
     var_samp: float
 
-    def to_csv(self, conv: Mapping[Tuple[str, int], str]) -> str:
+    def to_csv(
+        self, conv: Mapping[Tuple[str, int], str], PC2: Prec_Courbe2 = PC2_0
+    ) -> str:
         ret: List[str] = []
         ret.append(conv.get((self.name, self.bit1), "ERR"))
         ret.append(conv.get((self.name, self.bit2), "ERR"))
         ret.append(f"{self.bit1}")
         ret.append(f"{self.bit2}")
-        ret.extend(self.to_csv_02())
+        ret.extend(self.to_csv1(PC2.PB))
         ret.append(f"{self.sample_size}")
-        ret.extend((f"{D(1000*a).quantize(D('0.01'))}" for a in astuple(self)[11:12]))
-        ret.extend((f"{D(100000*a).quantize(D('1.0'))}" for a in astuple(self)[12:]))
+        ret.extend(
+            (
+                f"{D(PC2.mu_coef_inv*a).quantize(PC2.mu_prec)}"
+                for a in astuple(self)[11:12]
+            )
+        )
+        ret.extend(
+            (
+                f"{D(PC2.var_coef_inv*a).quantize(PC2.var_prec)}"
+                for a in astuple(self)[12:]
+            )
+        )
         return ";".join(ret)
+
+
+@dataclass(frozen=True)
+class Prec_Proba2:
+    """
+    valeur pour la précision de to_csv
+    """
+
+    b_coef_inv: float
+    b_prec: D
+
+
+PP2_0 = Prec_Proba2(1000.0, D("0.1"))
 
 
 @dataclass
@@ -1005,11 +1111,13 @@ class Proba2:
         ret.append(f"{D(self.normaltest_pvalue).quantize(D('0.1'))}%")
         return ";".join(ret)
 
-    def to_csv2(self, conv: Mapping[Tuple[str, int], str]) -> str:
+    def to_csv2(
+        self, conv: Mapping[Tuple[str, int], str], PP2: Prec_Proba2 = PP2_0
+    ) -> str:
         ret: List[str] = []
         ret.append(f"{self.n}")
         for st in zip(self.stdinvt, self.b_inf, self.b_sup):
-            ret.extend((f"{D(1000*a).quantize(D('0.1'))}" for a in st))
+            ret.extend((f"{D(PP2.b_coef_inv*a).quantize(PP2.b_prec)}" for a in st))
         return ";".join(ret)
 
 
@@ -1948,7 +2056,12 @@ ne sont pas acceptées pour un Plan_tri:
                     f"impossible de calculer les probabilité par pair pour la variable {nom}"
                 )
 
-    def to_csv1(self, nom_fic: Path, conv: Mapping[Tuple[str, int], str]) -> None:
+    def to_csv1(
+        self,
+        nom_fic: Path,
+        conv: Mapping[Tuple[str, int], str],
+        PC1: Prec_Courbe2 = PC1_1,
+    ) -> None:
         """
         Sortie de self.Courbes sous format csv
         """
@@ -1961,14 +2074,19 @@ ne sont pas acceptées pour un Plan_tri:
             nom1 = self.E.latex_indexes.get(nom, nom)
             for res, bit in zip(self.Courbes.get(nom, (None, None, None)), (-1, 0, 1)):
                 if res != None:
-                    ret.append(nom1 + ";" + res.to_csv(conv))
+                    ret.append(nom1 + ";" + res.to_csv(conv, PC1))
                 else:
                     val1 = conv.get((nom, bit), "ERR")
                     ret.append(f"{nom1};{val1};{bit};" + empty_fields)
         logger.info(f"écriture de {1 + len(ret)} lignes dans {nom_fic}")
         nom_fic.write_text("\n".join(ret))
 
-    def to_csv2(self, nom_fic: Path, conv: Mapping[Tuple[str, int], str]) -> None:
+    def to_csv2(
+        self,
+        nom_fic: Path,
+        conv: Mapping[Tuple[str, int], str],
+        PC2: Prec_Courbe2 = PC2_1,
+    ) -> None:
         """
         Sortie de self.Courbes_ddd sous format csv
         """
@@ -1982,7 +2100,7 @@ ne sont pas acceptées pour un Plan_tri:
             for bit in ((-1, 0), (-1, 1), (0, 1)):
                 res = self.Courbes_ddd.get((nom, bit[0], bit[1]), None)
                 if res != None:
-                    ret.append(nom1 + ";" + res.to_csv(conv))
+                    ret.append(nom1 + ";" + res.to_csv(conv, PC2))
                 else:
                     val1 = conv.get((nom, bit[0]), "ERR")
                     val2 = conv.get((nom, bit[1]), "ERR")
