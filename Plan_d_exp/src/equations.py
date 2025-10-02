@@ -384,27 +384,19 @@ def limi_2(
 
 def limi_3(
     nb: int,
+    ord: int,
 ) -> Mapping[int, MutableSequence[Sequence[Sequence[int]]]]:
-    res: Mapping[int, MutableSequence[Sequence[Sequence[int]]]] = {}
-    res = dict(
-        (
-            (
-                i,
-                list(
-                    filter(
-                        lambda x: all((y[1] <= 2 for y in x)),
-                        (
-                            tuple(Counter(b).items())
-                            for b in (list(a) for a in cwr(list(range(nb)), i))
-                            if len(b) != 0
-                        ),
-                    )
-                ),
-            )
-            for i in range(1, 2 * nb + 1)
-        )
+    res: Mapping[int, MutableSequence[Sequence[Sequence[int]]]] = dict(
+        ((i, []) for i in range(1, 2 * ord + 1))
     )
-    return res
+    res1: Mapping[int, MutableSequence[Sequence[Sequence[int]]]] = {}
+    for j in range(1, ord + 1):
+        for tpl in combinations(list(range(nb)), j):
+            for pwr in product((1, 2), repeat=j):
+                res[sum(pwr)].append(tuple(zip(tpl, pwr)))
+    for k, v in res.items():
+        res1[k] = sorted(v)
+    return res1
 
 
 @contextmanager
@@ -819,7 +811,7 @@ class Equations_tri(Equations):
         self.ind_indexes = dict((i[1], i[0]) for i in enumerate(indexes2))
         self.latex_indexes = dict(((i, i) for i in indexes2))
         self.fic_names = dict(((i, i.replace(":", "_")) for i in indexes2))
-        self.dct_cwr_ind = limi_3(len(indexes2))
+        self.dct_cwr_ind = limi_3(len(indexes2), order)
         self.powers = sorted(self.dct_cwr_ind.keys())
         self.power = "**"
 
