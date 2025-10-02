@@ -8,7 +8,6 @@ import pytest
 from Plan_d_exp.src.equations import Equations, Plan
 
 
-
 def test_Equations_3(caplog: Any) -> None:
     with caplog.at_level(logging.INFO, logger="Plan_d_exp.src.equations"):
         E = Equations(("1",), 0)
@@ -96,41 +95,6 @@ def test_Equations_8() -> None:
         "toto.b**2",
         "b**3",
     ]
-
-def test_Equations_18() -> None:
-    E = Equations(("1", "b", "2", "a"), 2)
-    assert E.excel_columns == [
-        "A",
-        "B",
-        "C",
-        "D",
-        "E",
-        "F",
-        "G",
-        "H",
-        "I",
-        "J",
-        "K",
-        "L",
-        "M",
-        "N",
-        "O",
-        "P",
-        "Q",
-    ]
-    assert (
-        E.to_excel_formula(np.arange(1.0, 16.0, 1.0).reshape(1, 15))
-        == "=1.0+2.0*B2+3.0*C2+4.0*D2+5.0*E2+6.0*F2+7.0*G2+8.0*H2+9.0*I2+10.0*J2+11.0*K2+12.0*L2+13.0*M2+14.0*N2+15.0*O2"
-    )
-
-
-def test_Equations_19() -> None:
-    E = Equations(("1", "b", "2", "a", "c"), 3)
-    assert E.excel_columns == list(ascii_uppercase) + [
-        f"A{i}" for i in ascii_uppercase
-    ] + [f"B{i}" for i in ascii_uppercase[:6]]
-
-
 
 
 def test_Plan_6() -> None:

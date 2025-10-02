@@ -477,6 +477,26 @@ class report_visu_distri:
         self.lst_probplot.append(fic2)
 
 
+def monome(datas: List[Tuple[int, int]]) -> str:
+    """
+    monome for excel
+    """
+    ret: List[str] = []
+    for ind in datas:
+        ret.append(power_case(*ind))
+    return "*".join(ret)
+
+
+def power_case(i: int, j: int) -> str:
+    """
+    fonction pour renvoyer ascii_upercase[i+2]^j
+    """
+    if j > 1:
+        return ascii_uppercase[i + 1] + "2^" + f"{j}"
+    else:
+        return ascii_uppercase[i + 1] + "2"
+
+
 class Equations:
     """
     Manage type of equations in order to speed up the generation of the equation
@@ -568,24 +588,6 @@ order should be less or equal to length of indexes"""
             )
         return col_names
 
-    @cached_property
-    def excel_columns(self) -> Sequence[str]:
-        """
-        Returns the len(col_names) first column names of an excel sheet
-        """
-        return list(
-            map(
-                lambda x: x[1],
-                zip(
-                    range(1, len(self.col_names) + 3),
-                    chain2(
-                        iter(ascii_uppercase),
-                        (i[0] + i[1] for i in product(ascii_uppercase, repeat=2)),
-                    ),
-                ),
-            )
-        )
-
     #    def to_excel_formula(self, data: np.ndarray[Tuple[int, int], np.dtype[Any]]) -> str:
     def to_excel_formula(self, data: np.ndarray) -> str:
         """
@@ -594,7 +596,13 @@ order should be less or equal to length of indexes"""
         """
         res = f"={data[0,0]}"
         res += "".join(
-            (f"{a:+}*{b}2" for a, b in zip(data[0, 1:], self.excel_columns[1:]))
+            (
+                f"{a:+}*{b}"
+                for a, b in zip(
+                    data[0, 1:],
+                    (monome(f) for e, d in self.dct_cwr_ind.items() for f in d),
+                )
+            )
         )
         return res
 

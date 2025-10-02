@@ -320,18 +320,25 @@ def test_Equations_17() -> None:
 
 def test_Equations_18() -> None:
     E = Equations(("1", "b", "2", "a"), 2)
-    assert E.excel_columns == list(ascii_uppercase[:17])
+    assert E.dct_cwr_ind == {
+        1: [((0, 1),), ((1, 1),), ((2, 1),), ((3, 1),)],
+        2: [
+            ((0, 2),),
+            ((0, 1), (1, 1)),
+            ((0, 1), (2, 1)),
+            ((0, 1), (3, 1)),
+            ((1, 2),),
+            ((1, 1), (2, 1)),
+            ((1, 1), (3, 1)),
+            ((2, 2),),
+            ((2, 1), (3, 1)),
+            ((3, 2),),
+        ],
+    }
     assert (
-        E.to_excel_formula(np.arange(1.0, 18.0, 1.0).reshape(1, 17))
-        == "=1.0+2.0*B2+3.0*C2+4.0*D2+5.0*E2+6.0*F2+7.0*G2+8.0*H2+9.0*I2+10.0*J2+11.0*K2+12.0*L2+13.0*M2+14.0*N2+15.0*O2+16.0*P2+17.0*Q2"
+        E.to_excel_formula(np.arange(1.0, 16.0, 1.0).reshape(1, 15))
+        == "=1.0+2.0*B2+3.0*C2+4.0*D2+5.0*E2+6.0*B2^2+7.0*B2*C2+8.0*B2*D2+9.0*B2*E2+10.0*C2^2+11.0*C2*D2+12.0*C2*E2+13.0*D2^2+14.0*D2*E2+15.0*E2^2"
     )
-
-
-def test_Equations_19() -> None:
-    E = Equations(("1", "b", "2", "a", "c"), 3)
-    assert E.excel_columns == list(ascii_uppercase) + [
-        f"A{i}" for i in ascii_uppercase
-    ] + [f"B{i}" for i in ascii_uppercase[:6]]
 
 
 def test_Equations_20() -> None:
