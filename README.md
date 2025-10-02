@@ -7,9 +7,14 @@ Create venv
 python3 -m venv env
 ```
 
-Init env
+Init env on linux
 ```
 source ./env/bin/activate
+```
+
+Init env on WINDOWS
+```
+.\Wenv\Scripts\activate.bat
 ```
 
 Install requirements
@@ -23,10 +28,16 @@ Some examples are available in the folder `examples`, see the `README` in this f
 
 ### Development
 
-Launch unit tests using pytest
+Launch unit tests using pytest on linux
 ```
 python3 -m pytest tests src
 ```
+
+Launch unit tests using pytest on WINDOWS
+```
+python3 -m pytest .\Plan_d_exp\
+```
+
 
 Improving the readability by sorting the imports
 ```
