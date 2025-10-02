@@ -6,7 +6,7 @@ from typing import Any
 import numpy as np
 import pytest
 
-from Plan_d_exp.src.equations import Equations, Plan
+from Plan_d_exp.src.equations import Equations, Plan, monome, power_case
 
 
 def test_Equations_3(caplog: Any) -> None:
@@ -108,3 +108,23 @@ def test_Plan_6() -> None:
     assert 98.096 < f1 < 98.097
     assert 0.19001 < f2 < 0.19002
     assert M.shape == (8, 15)
+
+
+def test_power_case() -> None:
+    assert power_case(0, 1) == "B2"
+    assert power_case(0, 3) == "B2^3"
+
+
+def test_monome() -> None:
+    d = []
+    assert monome(d) == ""
+    d = [
+        (0, 1),
+    ]
+    assert monome(d) == "B2"
+    d = [
+        (3, 1),
+    ]
+    assert monome(d) == "E2"
+    d = [(0, 1), (1, 3), (2, 4)]
+    assert monome(d) == "B2*C2^3*D2^4"
