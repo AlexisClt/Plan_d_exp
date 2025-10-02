@@ -1214,9 +1214,15 @@ ne contient pas suffisamment de colonnes: {len(col)-1} au lieu de {len(desi_col)
 
         return (a, max_diff, min_diff, rank)
 
-    def solve2(
-        self, order: int, b: Mapping[str, float]
-    ) -> Tuple[npt.NDArray[np.float64], Sequence[str], Equations, float, float, int]:
+    def solve2(self, order: int, b: Mapping[str, float]) -> Tuple[
+        npt.NDArray[np.float64],
+        Sequence[str],
+        Equations,
+        Sequence[Tuple[str, float]],
+        float,
+        float,
+        int,
+    ]:
         """Solve and find the coefficients
         only for equations in b.keys()
         return:
@@ -1226,9 +1232,11 @@ ne contient pas suffisamment de colonnes: {len(col)-1} au lieu de {len(desi_col)
         the rank"""
 
         new_index: List[str] = []
-        cvar = set(self.search_constant_var())
+        scv = self.search_constant_var()
+        cvar = set(scv)
+        lcvar = set((a[0] for a in scv))
         for a in self.E.indexes:
-            if not a in cvar:
+            if not a in lcvar:
                 new_index.append(a)
         E1 = Equations(new_index, order)
         M: MutableSequence[float] = []
@@ -1246,7 +1254,7 @@ ne contient pas suffisamment de colonnes: {len(col)-1} au lieu de {len(desi_col)
                     (
                         (a, b)
                         for a, b in self.Equations_table[pos].items()
-                        if not a in cvar
+                        if not a in lcvar
                     )
                 )
                 M.extend(E1.generate_line(Et))
@@ -1267,7 +1275,8 @@ ne contient pas suffisamment de colonnes: {len(col)-1} au lieu de {len(desi_col)
 l'écart minimal est: {min_diff}
 le rang de la matrice est: {rank}"""
         )
-        return (a, equation_OK, E1, max_diff, min_diff, rank)
+        lst_cvar = sorted(cvar, key=lambda x: self.E.ind_indexes[x[0]])
+        return (a, equation_OK, E1, lst_cvar, max_diff, min_diff, rank)
 
     def precision(
         self, order: int
@@ -1350,13 +1359,13 @@ le rang de la matrice est: {rank}"""
         for d, n in zip(gen_scr, new_names):
             self.add(d, n)
 
-    def search_constant_var(self) -> Sequence[str]:
+    def search_constant_var(self) -> Sequence[Tuple[str, float]]:
         """
         recherche à travers les equations les variables constantes
         retourne les noms des variables qui restent constantes pour
-        toute les équations
+        toute les équations, la valeur constante est aussi ajoutée
         """
-        ret: List[str] = []
+        ret: List[Tuple[str, float]] = []
         cou: DefaultDict[List[float]] = defaultdict(lambda: list())
         for eq in self.Equations_table:
             for var, val in eq.items():
@@ -1368,10 +1377,10 @@ le rang de la matrice est: {rank}"""
             difference = np.array(lval) - val0
             zer = np.zeros_like(difference)
             if all(np.isclose(difference, zer)):
-                ret.append(var)
+                ret.append((var, val0))
         if len(ret) != 0:
             logger.info(
-                f"les variables constantes dans les équations sont: {', '.join(ret)}"
+                f"les variables constantes dans les équations sont:\n{'\n'.join((f"{a[0]}: {a[1]}" for a in ret))}"
             )
         return ret
 
