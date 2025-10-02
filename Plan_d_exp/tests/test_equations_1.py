@@ -582,7 +582,8 @@ def test_limi_1() -> None:
 def test_generate_array() -> None:
     E = Equations(("1", "a"), 2)
     assert_almost_equal(
-        E.generate_array(np.array([1.0, 3.0])), np.array([1.0, 1.0, 3.0, 1.0, 3.0, 9.0])
+        E.generate_array(np.array([[1.0, 3.0]])),
+        np.array([1.0, 1.0, 3.0, 1.0, 3.0, 9.0]),
     )
 
 
@@ -602,8 +603,8 @@ def test_generate_array_1() -> None:
 
 def test_generate_array_1_2(caplog) -> None:
     E = Equations(("1", "a", "2", "b"), 2)
-    assert E.combi(1) == [((0, 1),), ((1, 1),), ((2, 1),), ((3, 1),)]
-    assert E.combi(2) == [
+    assert E.dct_cwr_ind[1] == [((0, 1),), ((1, 1),), ((2, 1),), ((3, 1),)]
+    assert E.dct_cwr_ind[2] == [
         ((0, 2),),
         ((0, 1), (1, 1)),
         ((0, 1), (2, 1)),

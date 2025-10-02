@@ -614,6 +614,42 @@ order should be less or equal to length of indexes"""
 
         return ret
 
+    def generate_array(self, data: np.ndarray) -> np.ndarray:
+        """
+        Generate the coefficients of several equations
+        raise error if number row of data is not len(self.indexes)
+        """
+        if data.ndim != 2:
+            raise ValueError(
+                f"""le nombre de dimensions de l'array passée à generate_array n'est
+pas accepté: {data.ndim} est strictement supérieur à 2"""
+            )
+        if data.shape[1] != len(self.indexes):
+            raise ValueError(
+                f"""la taille de l'array passée à generate_array n'est
+pas acceptée: {data.shape}. La deuxième dimension attendue est {len(self.indexes)}"""
+            )
+        one_ret = np.ones(data.shape[0])
+        ret = [
+            one_ret,
+        ]
+        for i in self.powers:
+            ret.extend(
+                [
+                    reduce(
+                        lambda x, y: x * y,
+                        (data[:, b[0]] ** b[1] for b in a),
+                        one_ret,
+                    )
+                    for a in self.dct_cwr_ind[i]
+                    if len(a) != 0
+                ]
+            )
+        if data.shape[0] == 1:
+            return np.ravel(np.column_stack(ret))
+        else:
+            return np.reshape(np.column_stack(ret), (data.shape[0], -1))
+
     def check_datas(
         self, data1: Mapping[str, float], data2: Mapping[str, float]
     ) -> bool:
