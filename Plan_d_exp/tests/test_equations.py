@@ -5,6 +5,7 @@ from typing import Any
 
 import numpy as np
 import pytest
+
 from Plan_d_exp.src.equations import Equations, Plan
 
 

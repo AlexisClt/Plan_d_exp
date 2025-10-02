@@ -15,7 +15,6 @@ from Plan_d_exp.src.equations import (
     def_scr,
     genere_def_scr_int,
     limi_1,
-    limi_2,
     limi_3,
     vers_int,
 )

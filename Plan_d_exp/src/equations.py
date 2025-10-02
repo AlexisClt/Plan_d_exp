@@ -32,7 +32,6 @@ from numpy.testing import assert_almost_equal
 from scipy.special import gamma, ndtr, ndtri, stdtr, stdtrit
 from scipy.stats import f_oneway, normaltest, probplot
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -352,33 +351,6 @@ def limi_1(
             for i in range(1, order + 1)
         )
     )
-    return res
-
-
-def limi_2(
-    lst_name: Sequence[str],
-) -> Mapping[int, MutableSequence[Sequence[Sequence[str]]]]:
-    res: Mapping[int, MutableSequence[Sequence[Sequence[str]]]] = {}
-    res = dict(
-        (
-            (
-                i,
-                [
-                    c[1]
-                    for c in filter(
-                        lambda x: all((y[1] <= 2 for y in x[0])),
-                        (
-                            (tuple(Counter(b).items()), b)
-                            for b in (list(a) for a in cwr(list(range(nb)), i))
-                            if len(b) != 0
-                        ),
-                    )
-                ],
-            )
-            for i in range(1, 2 * len(lst_name) + 1)
-        )
-    )
-    return res
     return res
 
 
