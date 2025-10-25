@@ -8,7 +8,7 @@ from decimal import Decimal as D
 from functools import cached_property, reduce
 from itertools import combinations
 from itertools import combinations_with_replacement as cwr
-from itertools import cycle, product, repeat
+from itertools import cycle, groupby, product, repeat
 from math import fabs, floor, sqrt
 from pathlib import Path
 from pickle import dumps, loads
@@ -22,6 +22,7 @@ from typing import (
     MutableSequence,
     Optional,
     Sequence,
+    Set,
     Tuple,
 )
 
@@ -1132,6 +1133,13 @@ class Plan:
         self.set_name: MutableSet[str] = set([])
         self.E = Equations(indexes, 1)
 
+    def clear(self) -> None:
+        """
+        clean evrything
+        """
+        ind = loads(dumps(self.E.indexes))
+        self.__init__(ind)
+
     def to_csv(self, sep: str = ";") -> str:
         """Return the content of the object in csv format"""
         ret = (
@@ -1492,6 +1500,136 @@ le rang de la matrice est: {rank}"""
             )
         return ret
 
+    def write_minmax_plan(
+        self,
+        a: npt.NDArray[np.float64],
+        conv: Set[Tuple[str, int]],
+        E: Equations,
+        order: int,
+        out_size: int,
+        fic_out_min: Path,
+        fic_out_max: Path,
+        Nom_eq: str,
+    ) -> int:
+        """
+        évalue toutes les équations du plan générable par conv avec a vecteur des coefficients
+        renvoyé par solve et solve2. Ecrit 2 fichiers contenant les out_size min ou max
+        expériences nommées avec Nom_eq.
+        renvoie le nombre d'équations évaluées.
+        si out_size <= -1 alors fic_out_min est écrit avec toutes les correspondance nom,résultats
+        si out_size > 0 alors seul fic_out_min est écrit avec le plan d'expérience
+        """
+        self.clear()
+        Eq0 = dict(((a, 0) for a in self.E.indexes))
+        old_indexes = loads(dumps(self.E.indexes))
+        # logger.debug(f"conv = {conv}")
+        dcon = dict(
+            (
+                (k, sorted((a[1] for a in g)))
+                for k, g in groupby(sorted(conv), key=lambda x: x[0])
+            )
+        )
+        # logger.debug(f"dcon = {dcon}")
+        if not set(E.indexes) <= set(self.E.indexes):
+            msg0 = ", ".join(
+                (f"'{a}'" for a in sorted(set(E.indexes) - set(self.E.indexes)))
+            )
+            logger.error(f"les variables: {msg0} ne font pas partie du plan")
+            return 0
+        if not set(E.indexes) <= set(dcon.keys()):
+            msg0 = ", ".join(
+                (f"'{a}'" for a in sorted(set(dcon.keys()) - set(E.indexes)))
+            )
+            logger.warning(f"les variables: {msg0} de sont pas assignées")
+            return 0
+        new_indexes = list(filter(lambda x: x in dcon.keys(), E.indexes))
+        lcon = [dcon[nom] for nom in new_indexes]
+        # logger.debug(f"lcon = {lcon}")
+        size = reduce(lambda x, y: x * y, (len(b) for b in lcon), 1)
+        # logger.debug(f"size = {size}")
+        logger.info(f"le nombre d'équation est: {size}")
+        if size <= out_size:
+            logger.warning(
+                f"""le nombre de sortie d'équation demandée {out_size} en sortie
+est supérieur au nombre d'équation générée: {size}
+toutes les données seront écrites"""
+            )
+            out_size = -1
+        noms = [f"{Nom_eq}_{i}" for i in range(1, size + 1)]
+        logger.info("création du meshgrid des valeurs des variables")
+        mesh = np.meshgrid(*lcon)
+        logger.info("applatissement du meshgrid des valeurs des variables")
+        matr = np.hstack(
+            [np.reshape(np.ravel(mesh[i]), (size, 1)) for i in range(len(new_indexes))]
+        )
+        logger.info("calcul de la matrice des valeur de la matrice des inconnues")
+        self.E.__init__(new_indexes, order)
+        res = self.E.generate_array(matr) @ a
+        self.E.__init__(old_indexes, order)
+        logger.info("recherche des extrèmes")
+        ind = np.argsort(res)
+        if out_size > 0:
+            logger.info(f"début d'écriture du fichier du plan max {fic_out_max}")
+            indmax = ind[-out_size:]
+            matrmax = matr[indmax]
+            nomsmax = [noms[i] for i in indmax]
+            for a, nom in zip(matrmax.tolist()[::-1], nomsmax[::-1]):
+                Eq1 = loads(dumps(Eq0))
+                Eq1.update(dict(zip(new_indexes, a)))
+                self.add(Eq1, nom)
+            msg = self.to_csv()
+            fic_out_max.write_text(msg)
+            logger.info(f"{msg}")
+            logger.info(f"fin écriture du fichier {fic_out_max}")
+            logger.info(
+                "nom;val\n"
+                + "\n".join(
+                    (
+                        f"{a[0]};{a[1]}"
+                        for a in zip(nomsmax[::-1], res[indmax].tolist()[::-1])
+                    )
+                )
+            )
+            self.clear()
+            logger.info(f"début d'écriture du fichier du plan min {fic_out_min}")
+            indmin = ind[:out_size]
+            matrmin = matr[indmin]
+            nomsmin = [noms[i] for i in indmin]
+            for a, nom in zip(matrmin.tolist(), nomsmin):
+                Eq1 = loads(dumps(Eq0))
+                Eq1.update(dict(zip(new_indexes, a)))
+                self.add(Eq1, nom)
+            msg = self.to_csv()
+            fic_out_min.write_text(msg)
+            logger.info(f"{msg}")
+            logger.info(f"fin écriture du fichier {fic_out_min}")
+            logger.info(
+                "nom;val\n"
+                + "\n".join((f"{a[0]};{a[1]}" for a in zip(nomsmin, res[indmin])))
+            )
+        elif out_size < 0:
+            logger.info(f"début d'écriture du fichier {fic_out_max}")
+            matrall = matr[ind]
+            nomsall = [noms[i] for i in ind]
+            fic_out_max.write_text(
+                "nom;val\n"
+                + "\n".join((f"{a[0]};{a[1]}" for a in zip(nomsall, res[ind])))
+            )
+            logger.info(
+                f"""fin d'écriture du fichier des résultats {fic_out_max}
+écriture de {len(noms) + 1} lignes"""
+            )
+            for a, nom in zip(matrall.tolist(), nomsall):
+                Eq1 = loads(dumps(Eq0))
+                Eq1.update(dict(zip(new_indexes, a)))
+                self.add(Eq1, nom)
+            msg = self.to_csv()
+            fic_out_min.write_text(msg)
+            logger.info(
+                f"fin d'écriture de {len(nom)} lignes du plan complet dans {fic_out_min}"
+            )
+        return size
+
 
 class Plan_tri(Plan):
     """
@@ -1503,6 +1641,7 @@ class Plan_tri(Plan):
         init du plan à 3 niveau (-1, 0, 1)
         """
         super().__init__(indexes)
+        self.E = Equations_tri(indexes, 1)
         self.sbitlevels: Set[int] = set()
         self.lbitlevels: List[int] = []
         self.abitlevels: npt.NDArray[np.uint64] = np.array([])

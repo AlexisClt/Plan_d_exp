@@ -41,7 +41,8 @@ def test_write_minmax_plan(tmp_path, caplog):
         fmin = tmp_path / Path("Plan_min.csv")
         fmax = tmp_path / Path("Plan_max.csv")
         assert PT.write_minmax_plan(a, conv, E2, 2, 5, fmin, fmax, "E") == 54
-    assert caplog.record_tuples == [
+    assert len(caplog.record_tuples) == 13
+    assert caplog.record_tuples[:8] == [
         ("Plan_d_exp.src.equations", logging.INFO, "le nombre d'équation est: 54"),
         (
             "Plan_d_exp.src.equations",
@@ -79,16 +80,20 @@ E_36;1;0;1;0;0""",
             logging.INFO,
             f"fin écriture du fichier {fmax}",
         ),
+    ]
+    assert caplog.record_tuples[8] == [
         (
             "Plan_d_exp.src.equations",
             logging.INFO,
             """nom;val
-E_54;11.100000000000001
-E_1;8.700000000000001
-E_53;7.660000000000001
-E_48;6.720000000000001
-E_36;6.5600000000000005""",
+E_54;11.1
+E_1;8.7
+E_53;7.66
+E_48;6.72
+E_36;6.56""",
         ),
+    ]
+    assert caplog.record_tuples[9:12] == [
         (
             "Plan_d_exp.src.equations",
             logging.INFO,
@@ -109,15 +114,17 @@ E_27;0;0;0;-1;0""",
             logging.INFO,
             f"fin écriture du fichier {fmin}",
         ),
+    ]
+    assert caplog.record_tuples[12] == [
         (
             "Plan_d_exp.src.equations",
             logging.INFO,
             """nom;val
 E_28;1.0
 E_22;1.08
-E_10;1.1399999999999997
-E_26;1.1800000000000002
-E_27;1.2000000000000002""",
+E_10;1.14
+E_26;1.18
+E_27;1.2""",
         ),
     ]
 
