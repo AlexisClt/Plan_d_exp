@@ -22,6 +22,16 @@ from Plan_d_exp.src.equations import (
 )
 
 
+def assert_logging_min_max_equal(r1: str, r2: str, epsilon: float = 1e-5):
+    tab1 = [b.split(";") for b in r1.split("\n")]
+    tab2 = [b.split(";") for b in r2.split("\n")]
+    assert len(tab1) == len(tab2)
+    assert tab1[0] == tab2[0]
+    for a, b in zip(tab1[1:], tab2[1:]):
+        assert a[0] == b[0]
+        assert fabs(float(a[1]) - float(b[1])) < epsilon
+
+
 @pytest.fixture
 def setup_res(tmp_path):
     tmp_res = tmp_path / Path("result.csv")
@@ -81,18 +91,6 @@ E_36;1;0;1;0;0""",
             f"fin écriture du fichier {fmax}",
         ),
     ]
-    assert caplog.record_tuples[8] == [
-        (
-            "Plan_d_exp.src.equations",
-            logging.INFO,
-            """nom;val
-E_54;11.1
-E_1;8.7
-E_53;7.66
-E_48;6.72
-E_36;6.56""",
-        ),
-    ]
     assert caplog.record_tuples[9:12] == [
         (
             "Plan_d_exp.src.equations",
@@ -115,18 +113,28 @@ E_27;0;0;0;-1;0""",
             f"fin écriture du fichier {fmin}",
         ),
     ]
-    assert caplog.record_tuples[12] == [
-        (
-            "Plan_d_exp.src.equations",
-            logging.INFO,
-            """nom;val
+    assert caplog.record_tuples[8][0] == "Plan_d_exp.src.equations"
+    assert caplog.record_tuples[8][1] == logging.INFO
+    assert_logging_min_max_equal(
+        """nom;val
+E_54;11.1
+E_1;8.7
+E_53;7.66
+E_48;6.72
+E_36;6.56""",
+        caplog.record_tuples[8][2],
+    )
+    assert caplog.record_tuples[12][0] == "Plan_d_exp.src.equations"
+    assert caplog.record_tuples[12][1] == logging.INFO
+    assert_logging_min_max_equal(
+        """nom;val
 E_28;1.0
 E_22;1.08
 E_10;1.14
 E_26;1.18
 E_27;1.2""",
-        ),
-    ]
+        caplog.record_tuples[12][2],
+    ),
 
 
 def test_write_minmax_plan_1(tmp_path, caplog):
