@@ -7,5 +7,7 @@ we are evaluating the accuracy of the design of experiments.
 We display the rank and the error of the 2 factors and 3 factors under the `Matrices de Hadamard` section. 
 This example only requires the class `Equations`.
 
+### plan3.py
 
+How to manage a design study with plan_d_exp
 
